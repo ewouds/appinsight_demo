@@ -42,8 +42,8 @@ A comprehensive **Proof of Concept** demonstrating modern web analytics and tele
 1. **Clone the repository**
 
    ```bash
-   git clone <your-repo-url>
-   cd application-insights-poc
+   git clone https://github.com/ewouds/appinsight_demo.git
+   cd appinsight_demo
    ```
 
 2. **Install dependencies**

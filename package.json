@@ -11,7 +11,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/your-username/application-insights-poc.git"
+    "url": "git+https://github.com/ewouds/appinsight_demo.git"
   },
   "keywords": [
     "azure",
@@ -27,12 +27,12 @@
     "nodejs",
     "express"
   ],
-  "author": "Your Name <your.email@example.com>",
+  "author": "Ewoud Smets <ewoud.smets@example.com>",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/your-username/application-insights-poc/issues"
+    "url": "https://github.com/ewouds/appinsight_demo/issues"
   },
-  "homepage": "https://github.com/your-username/application-insights-poc#readme",
+  "homepage": "https://github.com/ewouds/appinsight_demo#readme",
   "dependencies": {
     "applicationinsights": "^3.0.0",
     "dotenv": "^16.3.1",
