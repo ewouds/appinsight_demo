@@ -1,0 +1,47 @@
+{
+  "name": "application-insights-poc",
+  "version": "1.0.0",
+  "description": "Comprehensive PoC demonstrating web analytics and telemetry tracking using Azure Application Insights",
+  "main": "server/server-simple.js",
+  "scripts": {
+    "start": "node server/server-simple.js",
+    "start-full": "node server/server.js",
+    "dev": "nodemon server/server-simple.js",
+    "test": "echo \"No tests specified\" && exit 0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/your-username/application-insights-poc.git"
+  },
+  "keywords": [
+    "azure",
+    "application-insights",
+    "analytics",
+    "telemetry",
+    "web-metrics",
+    "monitoring",
+    "poc",
+    "demo",
+    "tracking",
+    "javascript",
+    "nodejs",
+    "express"
+  ],
+  "author": "Your Name <your.email@example.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/your-username/application-insights-poc/issues"
+  },
+  "homepage": "https://github.com/your-username/application-insights-poc#readme",
+  "dependencies": {
+    "applicationinsights": "^3.0.0",
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
