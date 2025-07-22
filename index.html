@@ -1,10 +1,46 @@
 <!DOCTYPE html>
 <html lang="en">
+<!--
+    Application Insights PoC - Interactive Web Analytics Dashboard
+    
+    This HTML page provides a comprehensive demonstration of Azure Application Insights
+    capabilities in a web application context. It showcases various analytics scenarios
+    including user behavior tracking, conversion funnels, A/B testing, and cohort analysis.
+    
+    ARCHITECTURE:
+    - Client-side analytics powered by Application Insights JavaScript SDK
+    - Server-side telemetry integration via Express.js backend
+    - Real-time metrics display with interactive demo controls
+    - Responsive design for cross-device compatibility
+    
+    KEY FEATURES DEMONSTRATED:
+    - Web metrics: Page views, bounce rate, time on page, visitor segmentation
+    - Purchase journey: Quote requests, applications, policy purchases (conversion funnel)
+    - A/B testing: Variant assignment and conversion tracking
+    - Cohort analysis: User retention and lifecycle metrics
+    - Device analytics: Browser, screen resolution, platform detection
+    - Performance monitoring: Page load times, error tracking
+    
+    INTEGRATION POINTS:
+    - Application Insights JavaScript SDK for client-side telemetry
+    - Custom AnalyticsManager class for business logic and event coordination
+    - RESTful API endpoints for server-side analytics coordination
+    - Real-time UI updates for immediate feedback and demonstration value
+-->
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Application Insights PoC - Comprehensive Web Analytics Demo</title>
+    
+    <!-- 
+        CSS STYLING STRATEGY:
+        - Modern, professional appearance using Microsoft design language
+        - Responsive layout that works on mobile and desktop
+        - Visual feedback for user interactions (button states, status messages)
+        - Clear sectioning to organize different analytics capabilities
+        - Accessibility considerations for screen readers and keyboard navigation
+    -->
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;

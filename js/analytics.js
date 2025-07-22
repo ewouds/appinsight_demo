@@ -16,27 +16,67 @@
  * Browser Support: Modern browsers (ES6+)
  */
 
+/**
+ * AnalyticsManager - Comprehensive Web Analytics Implementation
+ * 
+ * This class provides a complete analytics solution for web applications using
+ * Azure Application Insights. It demonstrates best practices for web analytics
+ * including user tracking, conversion funnels, A/B testing, and cohort analysis.
+ * 
+ * Key Capabilities:
+ * - User session and identity management with persistent tracking
+ * - Purchase journey funnel analysis with conversion metrics
+ * - A/B testing framework with statistical significance tracking
+ * - Cohort analysis for user retention and lifecycle insights
+ * - Device and browser analytics for segmentation
+ * - Performance monitoring and error tracking
+ * - Real-time metrics dashboard integration
+ * 
+ * Data Collection Strategy:
+ * - Client-side events are enriched with server-side context
+ * - User privacy is maintained through anonymized identifiers
+ * - Session data persists across page reloads for accurate analytics
+ * - Metrics are aggregated for real-time dashboard updates
+ */
 class AnalyticsManager {
+  /**
+   * Initializes the AnalyticsManager with comprehensive tracking setup
+   * 
+   * Sets up user identity, session management, and telemetry infrastructure.
+   * Automatically begins tracking user behavior and device characteristics.
+   * 
+   * The constructor performs these critical initialization steps:
+   * 1. Generates or retrieves persistent user and session identifiers
+   * 2. Initializes metric counters for real-time dashboard updates
+   * 3. Configures Application Insights telemetry pipeline
+   * 4. Starts session timing for engagement analysis
+   * 5. Collects device and browser information for segmentation
+   */
   constructor() {
     try {
-      this.sessionId = this.generateSessionId();
-      this.userId = this.getOrCreateUserId();
-      this.pageViewCount = 0;
-      this.sessionStartTime = Date.now();
-      this.currentQuoteId = null;
-      this.currentApplicationId = null;
+      // Generate unique identifiers for user and session tracking
+      this.sessionId = this.generateSessionId();     // Unique per browser session
+      this.userId = this.getOrCreateUserId();        // Persistent across sessions
+      this.pageViewCount = 0;                        // Track pages viewed in current session
+      this.sessionStartTime = Date.now();            // For calculating time-based metrics
+      
+      // Business process tracking - links events across the purchase funnel
+      this.currentQuoteId = null;                    // Links quote to application to purchase
+      this.currentApplicationId = null;              // Tracks application progress
 
-      // Counters for metrics
+      // Real-time metrics counters for dashboard display
+      // These counters provide immediate feedback and demonstration value
       this.metrics = {
-        pageViews: 0,
-        quoteRequests: 0,
-        applicationsStarted: 0,
-        applicationsCompleted: 0,
-        policiesSold: 0,
+        pageViews: 0,                // Total page views in session
+        quoteRequests: 0,            // Insurance quotes requested  
+        applicationsStarted: 0,      // Applications begun
+        applicationsCompleted: 0,    // Applications finished
+        policiesSold: 0,             // Final conversions
       };
 
-      this.initializeTracking();
-      this.startSessionTimer();
+      // Initialize tracking infrastructure and begin data collection
+      this.initializeTracking();                     // Configure Application Insights
+      this.startSessionTimer();                      // Begin engagement timing
 
       console.log("✅ AnalyticsManager initialized successfully", {
         sessionId: this.sessionId,
@@ -45,22 +85,54 @@ class AnalyticsManager {
       });
     } catch (error) {
       console.error("❌ Error initializing AnalyticsManager:", error);
+      // Graceful degradation - analytics failures shouldn't break the application
     }
   }
 
+  /**
+   * Generates a unique session identifier for tracking user sessions
+   * 
+   * The session ID combines timestamp and random string to ensure uniqueness
+   * across different browser sessions and page loads.
+   * 
+   * @returns {string} Unique session ID in format "session_{timestamp}_{random}"
+   */
   generateSessionId() {
     return "session_" + Date.now() + "_" + Math.random().toString(36).substr(2, 9);
   }
 
+  /**
+   * Retrieves existing user ID from localStorage or creates a new one
+   * 
+   * This enables persistent user tracking across browser sessions.
+   * The user ID is stored in localStorage and persists until the user
+   * clears browser data or uses a different device/browser.
+   * 
+   * @returns {string} Persistent user ID in format "user_{timestamp}_{random}"
+   */
   getOrCreateUserId() {
     let userId = localStorage.getItem("app_insights_user_id");
     if (!userId) {
+      // Create new user ID if none exists
       userId = "user_" + Date.now() + "_" + Math.random().toString(36).substr(2, 9);
       localStorage.setItem("app_insights_user_id", userId);
     }
     return userId;
   }
 
+  /**
+   * Initializes Application Insights tracking configuration
+   * 
+   * This method sets up the telemetry initializer which automatically adds
+   * custom properties to all telemetry data sent to Application Insights.
+   * It ensures consistent user and session tracking across all events.
+   * 
+   * Key features:
+   * - Sets up user and session context for all telemetry
+   * - Adds custom properties to every telemetry item
+   * - Configures device and browser information tracking
+   * - Provides fallback behavior when Application Insights is not available
+   */
   initializeTracking() {
     try {
       // Set user context using modern Application Insights v3 API
@@ -68,22 +140,24 @@ class AnalyticsManager {
         console.log("🔧 Configuring Application Insights telemetry initializer...");
 
         // Modern way to set user context - use telemetry initializer
+        // This function runs for every piece of telemetry sent to Application Insights
         appInsights.addTelemetryInitializer((envelope) => {
-          // Set user context
+          // Set user context in Azure Application Insights standard fields
           envelope.tags = envelope.tags || {};
           envelope.tags["ai.session.id"] = this.sessionId;
           envelope.tags["ai.user.id"] = this.userId;
           envelope.tags["ai.user.authUserId"] = this.userId;
 
-          // Add custom properties
+          // Add custom properties that will appear in all telemetry
           if (!envelope.data) envelope.data = {};
           if (!envelope.data.baseData) envelope.data.baseData = {};
           if (!envelope.data.baseData.properties) envelope.data.baseData.properties = {};
 
+          // These properties will be available in Application Insights queries
           envelope.data.baseData.properties.userId = this.userId;
           envelope.data.baseData.properties.sessionId = this.sessionId;
 
-          return true;
+          return true; // Continue processing the telemetry
         });
 
         console.log("✅ Application Insights telemetry initializer configured");
@@ -94,30 +168,53 @@ class AnalyticsManager {
       console.error("❌ Error initializing tracking:", error);
     }
 
-    // Track device and browser information
+    // Track device and browser information for analytics segmentation
     this.trackDeviceInfo();
   }
 
+  /**
+   * Starts a timer to update the time-on-page display
+   * 
+   * This method creates a recurring timer that updates the UI every 5 seconds
+   * to show how long the user has been on the current page. This is useful
+   * for engagement metrics and user behavior analysis.
+   */
   startSessionTimer() {
-    // Update time on page every 5 seconds
+    // Update time on page every 5 seconds to show user engagement
     setInterval(() => {
       const timeOnPage = Math.floor((Date.now() - this.sessionStartTime) / 1000);
       document.getElementById("timeOnPage").textContent = timeOnPage + "s";
     }, 5000);
   }
 
-  // Web Metrics Implementation
+  // ===================================================================
+  // WEB METRICS IMPLEMENTATION
+  // Methods for tracking basic web analytics metrics like page views,
+  // visitor types, bounce rate, and time on page
+  // ===================================================================
+
+  /**
+   * Tracks a page view event with comprehensive metadata
+   * 
+   * Page views are fundamental web analytics metrics. This method captures
+   * not just the page view but also contextual information like session data,
+   * timing, and whether this is the user's first page view.
+   * 
+   * @param {string} pageName - Name of the page being viewed (defaults to "Home")
+   */
   trackPageView(pageName = "Home") {
     this.pageViewCount++;
     this.metrics.pageViews++;
 
+    // Collect comprehensive page view data
     const pageViewData = {
       name: pageName,
       url: window.location.href,
-      duration: Date.now() - this.sessionStartTime,
-      isFirstView: this.pageViewCount === 1,
+      duration: Date.now() - this.sessionStartTime, // How long since session started
+      isFirstView: this.pageViewCount === 1, // Is this the first page in the session?
     };
 
+    // Send to Application Insights if available
     if (window.appInsights) {
       appInsights.trackPageView({
         name: pageName,
@@ -133,31 +230,43 @@ class AnalyticsManager {
       });
     }
 
-    // Update UI
+    // Update the UI display
     document.getElementById("pageViews").textContent = this.metrics.pageViews;
     this.showStatus(`Page view tracked: ${pageName}`, "success");
 
     console.log("Page View Tracked:", pageViewData);
   }
 
+  /**
+   * Simulates a new visitor acquisition event
+   * 
+   * This method demonstrates how to track new visitor acquisition,
+   * which is crucial for marketing attribution and user acquisition analysis.
+   * It clears existing user data to simulate a fresh visitor experience.
+   * 
+   * In a real application, this would be determined by checking if
+   * the user has visited before or came from a specific marketing campaign.
+   */
   simulateNewVisitor() {
     // Clear existing user data to simulate new visitor
     localStorage.removeItem("app_insights_user_id");
     localStorage.removeItem("visitor_type");
     localStorage.setItem("visitor_type", "new");
 
+    // Create event data with acquisition context
     const eventData = {
       visitorType: "new",
       timestamp: new Date().toISOString(),
-      source: "organic", // Simulated traffic source
+      source: "organic", // In real scenarios: social, email, paid, etc.
     };
 
+    // Track the new visitor acquisition event
     if (window.appInsights) {
       appInsights.trackEvent({
         name: "NewVisitorAcquisition",
         properties: {
           visitorType: "new",
-          trafficSource: "organic",
+          trafficSource: "organic", // Marketing attribution data
           sessionId: this.sessionId,
         },
       });
@@ -167,11 +276,21 @@ class AnalyticsManager {
     console.log("New Visitor Simulated:", eventData);
   }
 
+  /**
+   * Simulates a returning visitor engagement event
+   * 
+   * Returning visitors are valuable for retention analysis. This method
+   * tracks when known users return to the site and calculates how long
+   * it's been since their last visit - a key retention metric.
+   */
   simulateReturningVisitor() {
     localStorage.setItem("visitor_type", "returning");
 
+    // Calculate days since last visit for retention analysis
     const lastVisit = localStorage.getItem("last_visit");
-    const daysSinceLastVisit = lastVisit ? Math.floor((Date.now() - parseInt(lastVisit)) / (1000 * 60 * 60 * 24)) : 0;
+    const daysSinceLastVisit = lastVisit 
+      ? Math.floor((Date.now() - parseInt(lastVisit)) / (1000 * 60 * 60 * 24)) 
+      : 0;
 
     const eventData = {
       visitorType: "returning",
@@ -179,6 +298,7 @@ class AnalyticsManager {
       timestamp: new Date().toISOString(),
     };
 
+    // Track returning visitor engagement
     if (window.appInsights) {
       appInsights.trackEvent({
         name: "ReturningVisitorEngagement",
@@ -192,18 +312,28 @@ class AnalyticsManager {
       });
     }
 
+    // Update last visit timestamp for future calculations
     localStorage.setItem("last_visit", Date.now().toString());
     this.showStatus(`Returning visitor tracked (${daysSinceLastVisit} days since last visit)`, "success");
     console.log("Returning Visitor Simulated:", eventData);
   }
 
+  /**
+   * Simulates a bounce event (user leaving immediately)
+   * 
+   * Bounce rate is a critical web analytics metric indicating the percentage
+   * of visitors who leave after viewing only one page. High bounce rates
+   * may indicate poor user experience or content-audience mismatch.
+   */
   simulateBounce() {
+    // Collect bounce event data including session context
     const bounceData = {
       timeOnPage: Date.now() - this.sessionStartTime,
       pageViews: this.pageViewCount,
-      exitReason: "immediate_exit",
+      exitReason: "immediate_exit", // Could be: no_engagement, quick_exit, etc.
     };
 
+    // Track the bounce event with timing and context data
     if (window.appInsights) {
       appInsights.trackEvent({
         name: "BounceEvent",
@@ -222,9 +352,17 @@ class AnalyticsManager {
     console.log("Bounce Simulated:", bounceData);
   }
 
+  /**
+   * Tracks time spent on the current page
+   * 
+   * Time on page is a key engagement metric that helps understand
+   * user behavior and content effectiveness. Longer time on page
+   * typically indicates higher engagement with the content.
+   */
   trackTimeOnPage() {
     const timeOnPage = Date.now() - this.sessionStartTime;
 
+    // Send time on page metric to Application Insights
     if (window.appInsights) {
       appInsights.trackMetric({
         name: "TimeOnPage",
@@ -240,20 +378,37 @@ class AnalyticsManager {
     console.log("Time on Page:", timeOnPage);
   }
 
-  // Purchase Journey Implementation
+  // ===================================================================
+  // PURCHASE JOURNEY IMPLEMENTATION
+  // Methods for tracking e-commerce or conversion funnel events.
+  // This demonstrates how to track users through a multi-step process
+  // from initial interest to final conversion.
+  // ===================================================================
+
+  /**
+   * Handles quote request submission (first step in purchase journey)
+   * 
+   * This represents the top of the conversion funnel where users express
+   * initial interest. Tracking this helps measure conversion rates
+   * from marketing activities to actual sales inquiries.
+   */
   submitQuoteRequest() {
+    // Extract form data for quote request
     const customerName = document.getElementById("customerName").value;
     const insuranceType = document.getElementById("insuranceType").value;
     const coverageAmount = document.getElementById("coverageAmount").value;
 
+    // Validate required fields before processing
     if (!customerName || !insuranceType || !coverageAmount) {
       this.showStatus("Please fill in all fields", "error");
       return;
     }
 
+    // Generate unique quote ID for tracking through the funnel
     this.currentQuoteId = "quote_" + Date.now();
     this.metrics.quoteRequests++;
 
+    // Prepare quote data for tracking
     const quoteData = {
       quoteId: this.currentQuoteId,
       customerName,
@@ -262,6 +417,7 @@ class AnalyticsManager {
       timestamp: new Date().toISOString(),
     };
 
+    // Track quote request event with business context
     if (window.appInsights) {
       appInsights.trackEvent({
         name: "QuoteRequested",
@@ -271,12 +427,12 @@ class AnalyticsManager {
           sessionId: this.sessionId,
         },
         measurements: {
-          coverageAmount: parseFloat(coverageAmount),
+          coverageAmount: parseFloat(coverageAmount), // Business value metric
         },
       });
     }
 
-    // Update UI
+    // Update UI to reflect progress and enable next step
     document.getElementById("quoteRequests").textContent = this.metrics.quoteRequests;
     document.getElementById("applicationId").value = this.currentQuoteId;
     document.getElementById("startAppBtn").disabled = false;
@@ -285,22 +441,33 @@ class AnalyticsManager {
     console.log("Quote Request:", quoteData);
   }
 
+  /**
+   * Handles application start (second step in purchase journey)
+   * 
+   * This represents users who move from expressing interest (quote)
+   * to taking action (starting application). This is a key conversion
+   * point in the funnel and helps measure user intent strength.
+   */
   startApplication() {
+    // Ensure prerequisite step (quote request) has been completed
     if (!this.currentQuoteId) {
       this.showStatus("Please request a quote first", "error");
       return;
     }
 
+    // Generate unique application ID linked to the quote
     this.currentApplicationId = "app_" + Date.now();
     this.metrics.applicationsStarted++;
 
+    // Prepare application data with funnel context
     const applicationData = {
       applicationId: this.currentApplicationId,
-      quoteId: this.currentQuoteId,
+      quoteId: this.currentQuoteId, // Link back to original quote
       step: "started",
       timestamp: new Date().toISOString(),
     };
 
+    // Track application start event
     if (window.appInsights) {
       appInsights.trackEvent({
         name: "ApplicationStarted",
@@ -311,18 +478,18 @@ class AnalyticsManager {
         },
       });
 
-      // Track funnel step
+      // Track funnel progression for conversion analysis
       appInsights.trackEvent({
         name: "FunnelStep",
         properties: {
           step: "application_started",
-          funnelId: this.currentQuoteId,
+          funnelId: this.currentQuoteId, // Use quote ID as funnel identifier
           sessionId: this.sessionId,
         },
       });
     }
 
-    // Update UI
+    // Update UI metrics and enable next step
     document.getElementById("applicationsStarted").textContent = this.metrics.applicationsStarted;
     document.getElementById("completeAppBtn").disabled = false;
 
@@ -330,6 +497,13 @@ class AnalyticsManager {
     console.log("Application Started:", applicationData);
   }
 
+  /**
+   * Handles application completion (third step in purchase journey)
+   * 
+   * This represents users who complete the application form, showing
+   * strong purchase intent. Measuring time to complete helps identify
+   * friction points in the application process.
+   */
   completeApplication() {
     if (!this.currentApplicationId) {
       this.showStatus("Please start an application first", "error");
@@ -731,30 +905,58 @@ class AnalyticsManager {
     console.log("Cohort Data:", cohortData);
   }
 
-  // Utility Methods
+  // ===================================================================
+  // UTILITY METHODS
+  // Helper functions for UI feedback and user experience enhancement
+  // ===================================================================
+
+  /**
+   * Displays status messages to the user with visual feedback
+   * 
+   * Provides immediate feedback for user actions, making the demo
+   * more interactive and helping users understand what's happening.
+   * Status messages auto-hide to avoid UI clutter.
+   * 
+   * @param {string} message - The message to display to the user
+   * @param {string} type - Visual style: "success", "error", or default
+   */
   showStatus(message, type = "success") {
     const statusDiv = document.getElementById("statusDisplay");
     statusDiv.className = `status ${type}`;
     statusDiv.textContent = message;
     statusDiv.style.display = "block";
 
-    // Auto-hide after 5 seconds
+    // Auto-hide after 5 seconds to prevent UI clutter
     setTimeout(() => {
       statusDiv.style.display = "none";
     }, 5000);
   }
 }
 
-// Global instance
+// ===================================================================
+// GLOBAL INSTANCE AND INITIALIZATION
+// Manages the global analytics instance and provides initialization
+// functions for different deployment scenarios
+// ===================================================================
+
+// Global instance - provides access to analytics throughout the application
 let analyticsManager;
 
-// Function to initialize analytics (called from HTML after App Insights is configured)
+/**
+ * Initializes the analytics manager after Application Insights is configured
+ * 
+ * This function should be called from the HTML page after Application Insights
+ * has been loaded and configured. It creates the global analytics instance
+ * and begins tracking with an initial page view.
+ * 
+ * @returns {boolean} Success status of initialization
+ */
 function initializeAnalytics() {
   try {
     analyticsManager = new AnalyticsManager();
     console.log("🎯 Analytics Manager initialized");
 
-    // Track initial page view after a short delay
+    // Track initial page view after a short delay to ensure everything is ready
     setTimeout(() => {
       if (analyticsManager) {
         analyticsManager.trackPageView("HomePage");
@@ -768,16 +970,29 @@ function initializeAnalytics() {
   }
 }
 
-// Legacy initialization for backwards compatibility
+/**
+ * Legacy initialization for backwards compatibility
+ * 
+ * Provides fallback initialization when Application Insights is not available
+ * or when the page doesn't explicitly call initializeAnalytics().
+ * This ensures the demo works even in degraded conditions.
+ */
 document.addEventListener("DOMContentLoaded", function () {
-  // Only auto-initialize if not already done by HTML
+  // Only auto-initialize if not already done by HTML and App Insights isn't available
   if (!analyticsManager && !window.appInsights) {
     console.log("🔄 Fallback: Initializing analytics without Application Insights");
     analyticsManager = new AnalyticsManager();
   }
 });
 
-// Global functions for HTML onclick handlers
+// ===================================================================
+// GLOBAL FUNCTIONS FOR HTML ONCLICK HANDLERS
+// These functions provide the interface between HTML buttons and
+// the AnalyticsManager class methods. They ensure the analytics
+// manager is available before calling methods.
+// ===================================================================
+
+// Web Metrics Functions
 function trackPageView() {
   analyticsManager.trackPageView();
 }
@@ -793,6 +1008,8 @@ function simulateBounce() {
 function trackTimeOnPage() {
   analyticsManager.trackTimeOnPage();
 }
+
+// Purchase Journey Functions  
 function submitQuoteRequest() {
   analyticsManager.submitQuoteRequest();
 }
@@ -805,6 +1022,8 @@ function completeApplication() {
 function purchasePolicy() {
   analyticsManager.purchasePolicy();
 }
+
+// A/B Testing and Performance Functions
 function runABTest(variant) {
   analyticsManager.runABTest(variant);
 }
@@ -814,12 +1033,16 @@ function measurePageLoad() {
 function simulateError() {
   analyticsManager.simulateError();
 }
+
+// Device and Segmentation Functions
 function trackDeviceInfo() {
   analyticsManager.trackDeviceInfo();
 }
 function trackCustomSegment() {
   analyticsManager.trackCustomSegment();
 }
+
+// Cohort Analysis Functions
 function joinCohort() {
   analyticsManager.joinCohort();
 }

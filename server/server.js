@@ -1,14 +1,40 @@
 /**
  * Application Insights PoC - Server-side Implementation
- * Demonstrates server-side telemetry and analytics tracking
+ * 
+ * This Node.js Express server demonstrates comprehensive server-side telemetry
+ * and analytics tracking using Azure Application Insights SDK.
+ * 
+ * Key Features:
+ * - Automatic request/response tracking with custom metrics
+ * - Server-side event and metric tracking APIs
+ * - Purchase journey funnel analysis endpoints  
+ * - Cohort analysis and A/B testing capabilities
+ * - Performance monitoring and health checks
+ * - Comprehensive error handling and logging
+ * 
+ * Architecture:
+ * - Express.js web framework for RESTful APIs
+ * - Application Insights SDK for telemetry collection
+ * - Environment-based configuration for different deployments
+ * - Graceful shutdown handling for production deployments
+ * 
+ * Compatible with: Application Insights Node.js SDK v3.0+
  */
 
 // Load environment variables from .env file first
+// This must be done before importing Application Insights
 require("dotenv").config();
+
+// ===================================================================
+// ENVIRONMENT CONFIGURATION VALIDATION
+// Verify that required environment variables are properly configured
+// for Application Insights integration
+// ===================================================================
 
 console.log("Environment Variables Check:");
 console.log("- NODE_ENV:", process.env.NODE_ENV);
 console.log("- PORT:", process.env.PORT);
+// Only show partial connection strings for security (avoid logging full keys)
 console.log(
   "- APPLICATIONINSIGHTS_CONNECTION_STRING:",
   process.env.APPLICATIONINSIGHTS_CONNECTION_STRING ? `${process.env.APPLICATIONINSIGHTS_CONNECTION_STRING.substring(0, 20)}...` : "NOT SET"
@@ -18,23 +44,29 @@ console.log(
   process.env.APPINSIGHTS_INSTRUMENTATIONKEY ? `${process.env.APPINSIGHTS_INSTRUMENTATIONKEY.substring(0, 8)}...` : "NOT SET"
 );
 
-// Initialize Application Insights using the newer approach for v3.0+
+// ===================================================================
+// APPLICATION INSIGHTS INITIALIZATION
+// Configure Azure Application Insights for server-side telemetry.
+// Supports both connection string (preferred) and instrumentation key methods.
+// ===================================================================
+
 let client = null;
 if (process.env.APPLICATIONINSIGHTS_CONNECTION_STRING || process.env.APPINSIGHTS_INSTRUMENTATIONKEY) {
   try {
     const appInsights = require("applicationinsights");
 
-    // Use connection string if available, otherwise fall back to instrumentation key
+    // Use connection string if available (recommended), otherwise fall back to instrumentation key
     const connectionString = process.env.APPLICATIONINSIGHTS_CONNECTION_STRING || `InstrumentationKey=${process.env.APPINSIGHTS_INSTRUMENTATIONKEY}`;
 
+    // Configure Application Insights with comprehensive auto-collection
     appInsights
       .setup(connectionString)
-      .setAutoCollectRequests(true)
-      .setAutoCollectPerformance(true)
-      .setAutoCollectExceptions(true)
-      .setAutoCollectDependencies(true)
-      .setAutoCollectConsole(true)
-      .setUseDiskRetryCaching(true)
+      .setAutoCollectRequests(true)       // Track HTTP requests automatically
+      .setAutoCollectPerformance(true)    // Collect performance counters
+      .setAutoCollectExceptions(true)     // Track unhandled exceptions
+      .setAutoCollectDependencies(true)   // Track external dependencies (DB, HTTP calls)
+      .setAutoCollectConsole(true)        // Track console.log statements
+      .setUseDiskRetryCaching(true)       // Cache telemetry when network is unavailable
       .start();
 
     client = appInsights.defaultClient;
@@ -48,35 +80,45 @@ if (process.env.APPLICATIONINSIGHTS_CONNECTION_STRING || process.env.APPINSIGHTS
   );
 }
 
-// Now import other modules
+// ===================================================================
+// EXPRESS SERVER SETUP
+// Configure Express.js web server with middleware for handling
+// HTTP requests, static files, and JSON parsing
+// ===================================================================
+
+// Import required modules after Application Insights initialization
 const express = require("express");
 const path = require("path");
 
 const app = express();
 const port = process.env.PORT || 3000;
 
-// Middleware
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-app.use(express.static(path.join(__dirname, "..")));
+// Configure middleware for parsing request data
+app.use(express.json());                              // Parse JSON request bodies
+app.use(express.urlencoded({ extended: true }));     // Parse URL-encoded forms
+app.use(express.static(path.join(__dirname, "..")));  // Serve static files from parent directory
 
-// Use the client from initialization (no need to redeclare)
+// ===================================================================
+// CUSTOM REQUEST TRACKING MIDDLEWARE
+// Enhances Application Insights auto-collection with additional
+// custom metrics and properties for detailed request analysis
+// ===================================================================
 
-// Middleware to track request metrics
 app.use((req, res, next) => {
   const startTime = Date.now();
 
+  // Track request completion and calculate response time
   res.on("finish", () => {
     const duration = Date.now() - startTime;
 
-    // Track custom request metrics
+    // Track custom request metrics with enhanced context
     if (client) {
       client.trackRequest({
         name: `${req.method} ${req.route?.path || req.path}`,
         url: req.url,
         duration: duration,
         resultCode: res.statusCode,
-        success: res.statusCode < 400,
+        success: res.statusCode < 400, // Define success as non-error status codes
         properties: {
           userAgent: req.get("User-Agent"),
           referer: req.get("Referer"),
@@ -85,7 +127,7 @@ app.use((req, res, next) => {
         },
       });
 
-      // Track performance metrics
+      // Track performance metrics for monitoring server response times
       client.trackMetric({
         name: "ServerResponseTime",
         value: duration,
@@ -101,11 +143,20 @@ app.use((req, res, next) => {
   next();
 });
 
-// Routes
+// ===================================================================
+// WEB ROUTES
+// Handle web page requests and serve static content
+// ===================================================================
 
-// Home page
+/**
+ * Home page route
+ * 
+ * Serves the main dashboard HTML file and tracks home page access events.
+ * This provides insights into overall site traffic and user engagement patterns.
+ */
 app.get("/", (req, res) => {
   try {
+    // Track home page access for traffic analysis
     if (client) {
       client.trackEvent({
         name: "HomePageAccess",
@@ -127,9 +178,22 @@ app.get("/", (req, res) => {
   }
 });
 
-// API Routes for Analytics
+// ===================================================================
+// ANALYTICS API ROUTES
+// RESTful endpoints for client-side to server-side telemetry integration.
+// These APIs allow the frontend JavaScript to send analytics data
+// to the server for centralized tracking and processing.
+// ===================================================================
 
-// Track server-side events
+/**
+ * Generic event tracking endpoint
+ * 
+ * Accepts custom events from the client-side and forwards them to
+ * Application Insights with additional server-side context.
+ * 
+ * POST /api/track-event
+ * Body: { eventName, properties, measurements }
+ */
 app.post("/api/track-event", (req, res) => {
   try {
     const { eventName, properties, measurements } = req.body;

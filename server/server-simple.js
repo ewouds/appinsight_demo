@@ -1,15 +1,36 @@
 /**
  * Application Insights PoC - Simplified Server Implementation
  *
- * This simplified server implementation provides:
+ * This simplified server implementation provides a production-ready solution with:
+ * 
+ * KEY FEATURES:
  * - Azure Application Insights integration with minimal OpenTelemetry conflicts
- * - Manual request tracking for better control
- * - RESTful API endpoints for analytics demonstrations
- * - Comprehensive error handling and logging
- *
- * Recommended for: Development, demonstrations, and production deployments
- * where OpenTelemetry compatibility is a concern.
+ * - Manual request tracking for precise control over telemetry data
+ * - RESTful API endpoints for client-server analytics coordination
+ * - Comprehensive error handling and graceful failure modes
+ * - Environment-based configuration for different deployment scenarios
+ * 
+ * ARCHITECTURE DECISIONS:
+ * - Disables auto-collection features that may conflict with other monitoring tools
+ * - Uses manual telemetry tracking for better control and customization
+ * - Implements custom middleware for request/response tracking
+ * - Provides configuration endpoint for client-side Application Insights setup
+ * 
+ * RECOMMENDED FOR:
+ * - Production deployments where OpenTelemetry compatibility is required
+ * - Development environments with complex monitoring tool stacks
+ * - Scenarios requiring custom telemetry processing logic
+ * - Applications with specific performance and monitoring requirements
+ * 
+ * BROWSER COMPATIBILITY: All modern browsers (ES6+)
+ * NODE.JS COMPATIBILITY: Node.js 14+ with Application Insights SDK v3.0+
  */
+
+// ===================================================================
+// ENVIRONMENT CONFIGURATION AND SECURITY
+// Load and validate environment variables while protecting sensitive data
+// from accidental exposure in logs or development environments
+// ===================================================================
 
 // Load environment variables from .env file first (must be before other imports)
 require("dotenv").config();
@@ -17,6 +38,7 @@ require("dotenv").config();
 console.log("🔧 Environment Variables Check:");
 console.log("- NODE_ENV:", process.env.NODE_ENV);
 console.log("- PORT:", process.env.PORT);
+// Security: Only show partial connection strings to prevent key exposure in logs
 console.log(
   "- APPLICATIONINSIGHTS_CONNECTION_STRING:",
   process.env.APPLICATIONINSIGHTS_CONNECTION_STRING ? `${process.env.APPLICATIONINSIGHTS_CONNECTION_STRING.substring(0, 20)}...` : "NOT SET"
@@ -25,6 +47,12 @@ console.log(
   "- APPINSIGHTS_INSTRUMENTATIONKEY:",
   process.env.APPINSIGHTS_INSTRUMENTATIONKEY ? `${process.env.APPINSIGHTS_INSTRUMENTATIONKEY.substring(0, 8)}...` : "NOT SET"
 );
+
+// ===================================================================
+// APPLICATION INSIGHTS INITIALIZATION (SIMPLIFIED MODE)
+// Initialize Azure Application Insights with minimal auto-collection
+// to avoid conflicts with OpenTelemetry or other monitoring solutions
+// ===================================================================
 
 // Import required modules
 const express = require("express");
@@ -36,18 +64,18 @@ if (process.env.APPLICATIONINSIGHTS_CONNECTION_STRING || process.env.APPINSIGHTS
   try {
     const appInsights = require("applicationinsights");
 
-    // Use connection string if available, otherwise fall back to instrumentation key
+    // Use connection string if available (preferred method), otherwise fall back to instrumentation key
     const connectionString = process.env.APPLICATIONINSIGHTS_CONNECTION_STRING || `InstrumentationKey=${process.env.APPINSIGHTS_INSTRUMENTATIONKEY}`;
 
-    // Initialize with minimal auto-collection to avoid conflicts
+    // Initialize with minimal auto-collection to avoid conflicts with other monitoring tools
     appInsights
       .setup(connectionString)
-      .setAutoCollectRequests(false) // Disable to avoid conflicts
-      .setAutoCollectPerformance(false)
-      .setAutoCollectExceptions(true) // Keep exception tracking
-      .setAutoCollectDependencies(false)
-      .setAutoCollectConsole(false)
-      .setUseDiskRetryCaching(true)
+      .setAutoCollectRequests(false)    // Disable to prevent conflicts - we'll track manually
+      .setAutoCollectPerformance(false) // Disable to reduce overhead and conflicts
+      .setAutoCollectExceptions(true)   // Keep exception tracking - it's low-conflict and valuable
+      .setAutoCollectDependencies(false)// Disable to prevent dependency tracking conflicts
+      .setAutoCollectConsole(false)     // Disable console tracking to reduce noise
+      .setUseDiskRetryCaching(true)     // Enable caching for network resilience
       .start();
 
     appInsightsClient = appInsights.defaultClient;

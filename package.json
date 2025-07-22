@@ -1,13 +1,19 @@
 {
   "name": "application-insights-poc",
-  "version": "1.0.0",
-  "description": "Comprehensive PoC demonstrating web analytics and telemetry tracking using Azure Application Insights",
+  "version": "1.0.0", 
+  "description": "Comprehensive PoC demonstrating web analytics and telemetry tracking using Azure Application Insights. Features include real-time metrics, conversion funnel tracking, A/B testing, cohort analysis, and device analytics. Built with Express.js backend and vanilla JavaScript frontend for maximum compatibility and educational value.",
   "main": "server/server-simple.js",
   "scripts": {
     "start": "node server/server-simple.js",
-    "start-full": "node server/server.js",
+    "start-full": "node server/server.js", 
     "dev": "nodemon server/server-simple.js",
     "test": "echo \"No tests specified\" && exit 0"
+  },
+  "_scripts_documentation": {
+    "start": "Runs the simplified server (server-simple.js) - recommended for production and development. Uses manual telemetry tracking to avoid OpenTelemetry conflicts.",
+    "start-full": "Runs the full-featured server (server.js) with comprehensive auto-collection. Best for demonstration and development when no other monitoring tools are present.",
+    "dev": "Development mode with auto-restart on file changes using nodemon. Runs the simplified server for better compatibility with development tools.",
+    "test": "Placeholder for future test implementation. Currently returns success to allow CI/CD pipeline integration."
   },
   "repository": {
     "type": "git",
