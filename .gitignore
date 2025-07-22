@@ -6,6 +6,9 @@ yarn-debug.log*
 yarn-error.log*
 lerna-debug.log*
 
+# Diagnostic reports (https://nodejs.org/api/report.html)
+report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
+
 # Runtime data
 pids
 *.pid
@@ -38,8 +41,13 @@ build/Release
 node_modules/
 jspm_packages/
 
+<<<<<<< HEAD
 # TypeScript v1 declaration files
 typings/
+=======
+# Snowpack dependency directory (https://snowpack.dev/)
+web_modules/
+>>>>>>> d12862b4de0de549204c19da0e4fd4cd8f5dbcd2
 
 # TypeScript cache
 *.tsbuildinfo
@@ -50,11 +58,16 @@ typings/
 # Optional eslint cache
 .eslintcache
 
+<<<<<<< HEAD
 # Microbundle cache
 .rpt2_cache/
 .rts2_cache_cjs/
 .rts2_cache_es/
 .rts2_cache_umd/
+=======
+# Optional stylelint cache
+.stylelintcache
+>>>>>>> d12862b4de0de549204c19da0e4fd4cd8f5dbcd2
 
 # Optional REPL history
 .node_repl_history
@@ -65,11 +78,18 @@ typings/
 # Yarn Integrity file
 .yarn-integrity
 
+<<<<<<< HEAD
 # dotenv environment variables file
 .env
 .env.test
 .env.local
 .env.production
+=======
+# dotenv environment variable files
+.env
+.env.*
+!.env.example
+>>>>>>> d12862b4de0de549204c19da0e4fd4cd8f5dbcd2
 
 # parcel-bundler cache (https://parceljs.org/)
 .cache
@@ -77,6 +97,10 @@ typings/
 
 # Next.js build output
 .next
+<<<<<<< HEAD
+=======
+out
+>>>>>>> d12862b4de0de549204c19da0e4fd4cd8f5dbcd2
 
 # Nuxt.js build / generate output
 .nuxt
@@ -84,13 +108,36 @@ dist
 
 # Gatsby files
 .cache/
+<<<<<<< HEAD
 # Comment in the public line in if your project uses Gatsby and *not* Next.js
+=======
+# Comment in the public line in if your project uses Gatsby and not Next.js
+>>>>>>> d12862b4de0de549204c19da0e4fd4cd8f5dbcd2
 # https://nextjs.org/blog/next-9-1#public-directory-support
 # public
 
 # vuepress build output
 .vuepress/dist
 
+<<<<<<< HEAD
+=======
+# vuepress v2.x temp and cache directory
+.temp
+.cache
+
+# Sveltekit cache directory
+.svelte-kit/
+
+# vitepress build output
+**/.vitepress/dist
+
+# vitepress cache directory
+**/.vitepress/cache
+
+# Docusaurus cache and generated files
+.docusaurus
+
+>>>>>>> d12862b4de0de549204c19da0e4fd4cd8f5dbcd2
 # Serverless directories
 .serverless/
 
@@ -100,6 +147,7 @@ dist
 # DynamoDB Local files
 .dynamodb/
 
+<<<<<<< HEAD
 # TernJS port file
 .tern-port
 
@@ -123,3 +171,26 @@ Desktop.ini
 
 # Application specific
 README-old.md
+=======
+# Firebase cache directory
+.firebase/
+
+# TernJS port file
+.tern-port
+
+# Stores VSCode versions used for testing VSCode extensions
+.vscode-test
+
+# yarn v3
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/sdks
+!.yarn/versions
+
+# Vite logs files
+vite.config.js.timestamp-*
+vite.config.ts.timestamp-*
+>>>>>>> d12862b4de0de549204c19da0e4fd4cd8f5dbcd2
